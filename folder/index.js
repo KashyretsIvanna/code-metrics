@@ -24,10 +24,9 @@ function analyzeProject(dir) {
     commentLines: 0,
     physicalLines: 0,
     logicalLines: 0,
-  };
+  };/**/
 
-  for (const file of files) {
-    const result = analyzeFile(file);
+  for (const file of files) { const result = analyzeFile(file);
     Object.keys(totals).forEach(key => {
       totals[key] += result[key];
     });

@@ -1,7 +1,18 @@
+/** @format */
+
 const fs = require('fs');
 
+function stripStrings(line) {
+  return line.replace(
+    /(["'`])(?:\\.|(?!\1).)*\1/g,
+    '',
+  ); // remove content inside string literals
+}
 function analyzeFile(filepath) {
-  const content = fs.readFileSync(filepath, 'utf-8');
+  const content = fs.readFileSync(
+    filepath,
+    'utf-8',
+  );
   const lines = content.split('\n');
 
   let totalLines = lines.length;
@@ -12,23 +23,33 @@ function analyzeFile(filepath) {
 
   for (let line of lines) {
     const trimmed = line.trim();
+    let code = stripStrings(trimmed); 
+    
     if (trimmed === '') {
       emptyLines++;
     } else if (inBlockComment) {
       commentLines++;
-      if (trimmed.endsWith('*/')) inBlockComment = false;
-    } else if (trimmed.startsWith('//')) {
+      hasComment = true;
+      if (code.includes('*/'))
+        inBlockComment = false;
+    } else if (code.includes('/*')) {
       commentLines++;
-    } else if (trimmed.startsWith('/*')) {
+      hasComment = true;
+      if (!code.includes('*/'))
+        inBlockComment = true;
+    } else if (code.includes('//')) {
       commentLines++;
-      if (!trimmed.endsWith('*/')) inBlockComment = true;
+      hasComment = true;
     } else {
       // Approximate logical line
-      logicalLines += (trimmed.match(/;|{|}/g) || []).length;
+      logicalLines += (
+        trimmed.match(/;|{|}/g) || []
+      ).length;
     }
   }
 
-  const physicalLines = totalLines - emptyLines - commentLines;
+  const physicalLines =
+    totalLines - emptyLines - commentLines;
 
   return {
     totalLines,
